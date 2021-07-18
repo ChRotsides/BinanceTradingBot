@@ -48,7 +48,7 @@ public:
     float pos_size=1;
     float perc_diff_buy=1.01;
     float perc_diff_sell_gain=1.01;
-    float perc_diff_sell_loss=1.0033;
+    float perc_diff_sell_loss=1.0066;
     float diff_from_last_trade=1.02;
     int trend_minutes=10;
     int average_minutes=180;
@@ -158,16 +158,23 @@ public:
 
         std::string book_ticker_str=bapi.getBook(symbol);
         Json::Value book_ticker;
+        price_t prc;
         if(!reader.parse(book_ticker_str,book_ticker)){
             std::cerr<<"Unable to read the Book ticker\n";
         }
 
+        if(book_ticker["code"]!=Json::nullValue){
+            std::cerr<<book_ticker<<"\n";
+            prc.ask= past_prices.back();
+            prc.bid= past_prices.back();
+            return prc;
+        }
 
         #ifdef VERBOSE
             std::cout<<book_ticker<<"\n";
         #endif
+        std::cerr<<book_ticker<<"\n";
 
-        price_t prc;
         prc.ask=std::stof(book_ticker["askPrice"].asString());
         prc.bid=std::stof(book_ticker["bidPrice"].asString());
 
@@ -269,7 +276,7 @@ public:
         //TODO
         // Test and implent better way for trend
         if(past_prices.size()>trend_minutes){
-            current_trend=prc.ask/past_prices[past_prices.size()-trend_minutes];//Get short term trend min trend
+            current_trend=past_prices[past_prices.size()-1]/past_prices[past_prices.size()-trend_minutes];//Get short term trend min trend
         }else{
             current_trend=0;
         }
@@ -289,12 +296,12 @@ public:
         float trend=getTrend(prc);
 
         
-        if(MA/prc.ask>perc_diff_buy && trend>=1 && active_trades.size()<active_trades_limit && adequateDifferenceFromLastTrade(prc)){
+        if((MA/prc.ask>perc_diff_buy && trend>=1 && active_trades.size()<active_trades_limit && adequateDifferenceFromLastTrade(prc))){
             makeBuyOrder(prc);
         }else{
-            for(int j=active_trades.size()-1; j>=0; j++){
+            for(int j=active_trades.size()-1; j>=0; j--){
                 trade tr=active_trades[j];
-                
+
                 if(prc.bid/tr.price>=perc_diff_sell_gain || tr.price/prc.bid>=perc_diff_sell_loss){
                     makeSellOrder(tr);
                     active_trades.erase(active_trades.begin()+j);
@@ -330,12 +337,13 @@ int main(int args, char* argv[]){
     std::cout<<"Trading "<<trader.symbol<<"\n";
     trader.tradeLimit=20;
     trader.active_trades_limit=1;
-    
 
+    
     while(cont){
         trader.checkAndExecute();
         sleep(60);
     }
+
 
     pthread_join(tid,NULL);
 
