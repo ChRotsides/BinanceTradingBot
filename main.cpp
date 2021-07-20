@@ -54,6 +54,7 @@ public:
     int average_minutes=180;
     float tradeLimit=20;
     int active_trades_limit=1;
+    float min_trade_bal=20;
     std::string symbol;
     std::string base_asset;
     std::string quote_asset;
@@ -172,8 +173,8 @@ public:
 
         #ifdef VERBOSE
             std::cout<<book_ticker<<"\n";
+            std::cerr<<book_ticker<<"\n";
         #endif
-        std::cerr<<book_ticker<<"\n";
 
         prc.ask=std::stof(book_ticker["askPrice"].asString());
         prc.bid=std::stof(book_ticker["bidPrice"].asString());
@@ -186,6 +187,11 @@ public:
         current_quote_balance=getAvailableBalance(quote_asset);
         trade new_trade;
         float bal_to_use;
+        if(current_quote_balance<min_trade_bal){
+            std::cout<<"No available Balance\n";
+            return;
+        }
+
         if(current_quote_balance<tradeLimit){
             bal_to_use=current_quote_balance;
         }else{
@@ -305,7 +311,7 @@ public:
                 if(prc.bid/tr.price>=perc_diff_sell_gain || tr.price/prc.bid>=perc_diff_sell_loss){
                     makeSellOrder(tr);
                     active_trades.erase(active_trades.begin()+j);
-                }        
+                }
             }
         }
         past_prices.push_back((prc.bid+prc.ask)/2);
