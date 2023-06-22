@@ -8,6 +8,8 @@ This application relies on several libraries:
 - PThread
 - Standard C++ Libraries
 
+Create the executable running ``` g++ -g main.cpp ./binanceApi/BAPI.cpp -o main.out -lcrypto -lcurl -lssl -ljsoncpp -lpthread ```
+
 ## Usage
 To run the bot, you need to pass two arguments to the program at launch. These are the two cryptocurrencies that form the trading pair you want to work with. The first argument is the base cryptocurrency and the second is the quote cryptocurrency.
 
@@ -32,6 +34,4 @@ If you have any questions about the contributions, please feel free to contact u
 
 ## License
 Distributed under the MIT License. See LICENSE for more information.
-
-Make by running ``` g++ -g main.cpp ./binanceApi/BAPI.cpp -o main.out -lcrypto -lcurl -lssl -ljsoncpp -lpthread ```
 
